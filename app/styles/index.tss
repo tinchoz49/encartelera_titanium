@@ -1,0 +1,9 @@
+".container" : {
+	layout : "vertical",
+	fullscreen: "true",
+	backgroundColor : "white"
+}
+"#camaraContent" : {
+	width : "100%",
+	height : "100%"
+}

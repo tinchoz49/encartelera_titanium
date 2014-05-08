@@ -1,0 +1,1 @@
+module.exports = [{"isClass":true,"priority":10000.0002,"key":"container","style":{layout:"vertical",fullscreen:"true",backgroundColor:"white",}},{"isId":true,"priority":100000.0003,"key":"camaraContent","style":{width:"100%",height:"100%",}}];

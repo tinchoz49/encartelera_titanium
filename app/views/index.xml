@@ -1,0 +1,8 @@
+<Alloy>
+	<Window title="Encartelera" class="container">
+		<!-- Android menu -->
+		<View id="camaraContent">
+			
+		</View>
+	</Window>
+</Alloy>
