@@ -22,29 +22,50 @@ function Controller() {
     $.__views.index.add($.__views.camaraContent);
     exports.destroy = function() {};
     _.extend($, $.__views);
-    var qrreader = require("com.acktie.mobile.android.qr");
-    var MeteorDdp = require("meteor-ddp");
-    var ddp = new MeteorDdp("ws://encartelera.meteor.com/websocket");
+    var qrreader = void 0, MeteorDdp = void 0, ddp = void 0, Anuncios = void 0, opaco = void 0;
+    var scanditsdk = require("com.mirasense.scanditsdk");
+    qrreader = require("com.acktie.mobile.android.qr");
+    MeteorDdp = require("meteor-ddp");
+    ddp = new MeteorDdp("ws://encartelera.meteor.com/websocket");
     ddp.connect().done(function() {
         Ti.API.info("Connected!");
     });
-    var Anuncios = require("models/anuncios");
-    var qrCodeView = qrreader.createQRCodeView({
+    Anuncios = require("models/anuncios");
+    picker = scanditsdk.createView({
+        width: "100%",
+        height: "100%"
+    });
+    picker.init("ZKlhzLqmEeOJq2nmbkHUrHoXs9PQMilBc8oYXyLNiGw", 0);
+    picker.setSuccessCallback(function(e) {
+        alert("success (" + e.symbology + "): " + e.barcode);
+        if (void 0 != e.barcode) {
+            Titanium.Media.vibrate();
+            try {
+                ddp.unsubscribe("cartelerasByIdWithAnuncios");
+                ddp.subscribe("cartelerasByIdWithAnuncios", [ e.barcode, null, 10 ]).done(function() {
+                    Anuncios.deleteAll();
+                    opaco.opacity = .7;
+                });
+            } catch (e) {
+                alert("Error de conexion, al parecer te quedaste sin internet :(");
+            }
+        }
+    });
+    picker.setCancelCallback(function() {
+        closeScanner();
+    });
+    var closeScanner = function() {
+        null != picker && picker.stopScanning();
+    };
+    $.camaraContent.add(picker);
+    opaco = Ti.UI.createView({
         backgroundColor: "black",
         width: "100%",
         height: "100%",
-        success: function(data) {
-            if (void 0 != data && void 0 != data.data) {
-                Titanium.Media.vibrate();
-                ddp.subscribe("cartelerasByIdWithAnuncios", [ data.data, null, 10 ]).done(function() {
-                    Anuncios.deleteAll();
-                });
-            }
-        },
-        continuous: true
+        opacity: 0
     });
-    $.camaraContent.add(qrCodeView);
-    qrCodeView.add(Anuncios.listView);
+    picker.add(opaco);
+    $.camaraContent.add(Anuncios.listView);
     ddp.watch("anuncios", function(changedDoc, message) {
         Ti.API.info("El mensaje: " + message);
         Anuncios.update(changedDoc, message);
