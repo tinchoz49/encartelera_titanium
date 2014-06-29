@@ -1,84 +1,121 @@
-var qrreader = undefined,
-MeteorDdp = undefined,
-ddp = undefined,
-Anuncios = undefined,
-opaco = undefined,
-qrCodeView = undefined;
+var Chipiqr = require("chipiqr"), 
+MeteorDdp = require("meteor-ddp"), 
+Anuncios = require('models/anuncios'), 
+qr = undefined, 
+ddp = undefined, 
+anuncioView = undefined;
 
-// libreria qr
-var scanditsdk = require("com.mirasense.scanditsdk");
-
-// libreria meteorddp (es una libreria para conectarse por sockets con la pagina armada en meteor)
-MeteorDdp = require("meteor-ddp");
-
-/*
- * AYUDAS
- * 
- * Todos los objetos que se crean de la forma Ti.UI. son objetos de titanium. Si se quiere saber como funciona x objeto lo unico que hay que hacer
- * es acceder a la documentacion de titanium y buscar en el arbol Ti -> UI ... el objeto que estan usando, ejemplo: 
- * Si estan usando Ti.UI.createListView() pueden buscar el objeto ListView en Ti -> UI -> ListView
- * 
- */
-
-// se crea una conexion con el socket de la pagina http://encartelera.meteor.com
-ddp = new MeteorDdp('ws://encartelera.meteor.com/websocket');
-ddp.connect().done(function() {
-  Ti.API.info('Connected!');
+$.index.addEventListener('open', function() {
+	$.index.activity.actionBar.hide();
 });
 
-// creamos la coleccion nuestra "Anuncios"
-Anuncios = require('models/anuncios');
-
-// se crea una vista qrcode con un conjunto de opciones. La vista qrcode es un objeto que extiende de View por lo que hereda todas sus propiedades.
-picker = scanditsdk.createView({
-	width:"100%",
-	height:"100%"
+qr = new Chipiqr($.camaraContent, {
+	backgroundColor : 'black',
+	width : '100%',
+	height : '100%',
+	top : 0,
+	left : 0
 });
 
-// Initialize the barcode picker, remember to paste your own app key here.
-picker.init("ZKlhzLqmEeOJq2nmbkHUrHoXs9PQMilBc8oYXyLNiGw", 0);
-
-// Set callback functions for when scanning succeedes and for when the 
-// scanning is canceled.
-picker.setSuccessCallback(function(e) {
-	if (e.barcode != undefined) {
+qr.onSuccess(function(data, opaco) {
+	if (data != undefined && data.data != undefined) {
 		Titanium.Media.vibrate();
+		opaco.opacity = 0;
 		try {
 			ddp.unsubscribe('cartelerasByIdWithAnuncios');
-			ddp.subscribe('cartelerasByIdWithAnuncios', [e.barcode, null, 10]).done(function(err) {
-			  Anuncios.deleteAll();
-			  opaco.opacity = 0.7;
+			ddp.subscribe('cartelerasByIdWithAnuncios', [data.data, null, 10]).done(function(err) {
+				if (anuncioView) {
+					anuncioView.close();
+				}
+				Anuncios.deleteAll();
+
+				opaco.opacity = 0.7;
 			});
-		}
-		catch (e) {
+		} catch (e) {
 			alert("Error de conexion, al parecer te quedaste sin internet :(");
 		}
 	}
 });
 
-picker.setCancelCallback(function(e) {
-	if (picker != null) {
-		picker.stopScanning();
+qr.onCancel(function(data, opaco) {
+	Ti.API.info('se cancelo la camara qr');
+});
+
+qr.start();
+
+/*
+* AYUDAS
+*
+* Todos los objetos que se crean de la forma Ti.UI. son objetos de titanium. Si se quiere saber como funciona x objeto lo unico que hay que hacer
+* es acceder a la documentacion de titanium y buscar en el arbol Ti -> UI ... el objeto que estan usando, ejemplo:
+* Si estan usando Ti.UI.createListView() pueden buscar el objeto ListView en Ti -> UI -> ListView
+*
+*/
+
+// se crea una conexion con el socket de la pagina http://encartelera.meteor.com
+ddp = new MeteorDdp('ws://encartelera.meteor.com/websocket');
+ddp.connect().done(function() {
+	Ti.API.info('Connected!');
+});
+
+Anuncios.init({
+	columns : 2,
+	space : 20,
+	gridBackgroundColor : 'transparent',
+	itemHeightDelta : 0,
+	itemBackgroundColor : '#eee',
+	itemBorderColor : 'transparent',
+	itemBorderWidth : 0,
+	itemBorderRadius : 0,
+	onItemClick : function(item, e) {
+		Ti.API.info(item.data.titulo);
+		anuncioView = Alloy.createController('anuncio', item.data).getView();
+
+		anuncioView.open({
+			modal : true,
+			activityEnterAnimation : Ti.Android.R.anim.slide_in_left,
+			activityExitAnimation : Ti.Android.R.anim.slide_out_right
+		});
 	}
 });
 
-// agregamos la vista de qrcode dentro de la vista (view) camaraContent (la pueden ver en el template de alloy)
-$.camaraContent.add(picker);
-
-opaco = Ti.UI.createView({
-	backgroundColor : 'black',
-	width : '100%',
-	height : '100%',
-	opacity : 0
-});
-
-// agregamos a la vista qr la listview para que se muestre por arriba de la camara
-picker.add(opaco);
-
-$.camaraContent.add(Anuncios.listView);
+$.camaraContent.add(Anuncios.fg.getView());
 
 ddp.watch('anuncios', function(changedDoc, message) {
+	Ti.API.info('El mensaje: ' + message);
+	Ti.API.info('titulo: '+changedDoc.titulo);
+	Ti.API.info('contenido: '+changedDoc.contenido);
+	Ti.API.info('changedDoc: '+changedDoc);
 	Anuncios.update(changedDoc, message);
 });
 
 $.index.open();
+
+/*
+ * Codigo para que funcione bien la aplicacion al pausarse y resumir
+ */
+
+Ti.App.addEventListener('resumed', function() {
+	Ti.API.info('resumen de la aplicacion');
+	qr.start();
+	$.camaraContent.add(Anuncios.fg.getView());
+});
+
+Ti.App.addEventListener('paused', function() {
+	Ti.API.info('aplicacion pausada');
+	qr.stop();
+	$.camaraContent.remove(Anuncios.fg.getView());
+});
+
+var platformTools = require('bencoding.android.tools').createPlatform(), wasInForeGround = true, start = false;
+
+setInterval(function() {
+	var isInForeground = platformTools.isInForeground();
+
+	if (wasInForeGround !== isInForeground) {
+
+		Ti.App.fireEvent( isInForeground ? 'resumed' : 'paused');
+
+		wasInForeGround = isInForeground;
+	}
+}, 3000);

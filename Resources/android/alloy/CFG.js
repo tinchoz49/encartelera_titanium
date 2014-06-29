@@ -1,1 +1,1 @@
-module.exports={"dependencies":{}};
+module.exports={"dependencies":{"com.prodz.tiflexigrid":"1.2"}};

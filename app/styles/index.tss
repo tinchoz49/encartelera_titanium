@@ -1,7 +1,7 @@
 ".container" : {
 	layout : "vertical",
 	fullscreen: "true",
-	backgroundColor : "white"
+	backgroundImage : "/default.png"
 }
 "#camaraContent" : {
 	width : "100%",

@@ -1,7 +1,8 @@
 <Alloy>
 	<Window width="80%" height="80%" fullscreen="false" navBarHidden="true">
-		<View opacity="1" backgroundColor="white">
-			<Label id="label1" color="#900" shadowColor="#aaa" text="A simple label" textAlign="Ti.UI.TEXT_ALIGNMENT_CENTER" top="30" width="Ti.UI.SIZE" height="Ti.UI.SIZE" />
+		<View opacity="1" backgroundColor="white" layout="vertical">
+			<Label id="titulo" color="#900" shadowColor="#aaa" text="A simple label" textAlign="Ti.UI.TEXT_ALIGNMENT_CENTER" width="Ti.UI.SIZE" height="Ti.UI.SIZE" />
+			<Label id="contenido" color="#900" shadowColor="#aaa" text="A simple label" textAlign="Ti.UI.TEXT_ALIGNMENT_CENTER" width="Ti.UI.SIZE" height="Ti.UI.SIZE" />
 		</View>
 	</Window>
 </Alloy>

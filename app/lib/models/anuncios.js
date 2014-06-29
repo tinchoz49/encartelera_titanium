@@ -11,55 +11,50 @@
  * 			Item2
  * 
  */
-var listView = Ti.UI.createListView({opacity: 1}),
-	section = Ti.UI.createListSection(),
-	dataItem;
-
-// la propiedad sections del ListView permite asignarle un arreglo de secciones, eso es lo que hacemos aca. ejemplo de definicion de un array en js: [1, 2, 3, 4]
-listView.sections = [section];
-
-
-listView.addEventListener('itemclick', function(e){
-    var item = e.section.getItemAt(e.itemIndex);
-    var anuncioView = Alloy.createController('anuncio').getView();
-   
-    anuncioView.open({
-   		modal: true,
-       activityEnterAnimation: Ti.Android.R.anim.slide_in_left,
-       activityExitAnimation: Ti.Android.R.anim.slide_out_right
-    }); 
-
-});
-
+var fg = Alloy.createWidget('com.prodz.tiflexigrid'),
+	itemView;
 
 module.exports = {
+	"init" : function (options) {
+		fg.init(options);
+	},
     "anuncios" : [],
-    "listView" : listView,
-    "section" : section,
+    "fg" : fg,
     "update" : function(doc, message) {
+    	var pos;
         if (message === 'removed') {
-            this.section.deleteItemsAt(this.anuncios.indexOf(doc._id), 1);
+        	this.remoteItem(doc);
         } else if (message === 'changed') {
-            dataItem = this.section.getItemAt(this.anuncios.indexOf(doc._id));
-            dataItem.properties.title = doc.titulo;
-            this.section.replaceItemsAt(this.anuncios.indexOf(doc._id), 1, [dataItem]);
+            itemView = this.fg.getItemAt(this.anuncios.indexOf(doc._id));
+            itemView.titulo.setText(doc.titulo);
+            itemView.contenido.setHtml(doc.contenido);
         } else {
-            this.anuncios.push(doc._id);
-            this.section.appendItems([{
-            	type: 'Ti.UI.Label',
-                properties : {
-                    itemId : doc._id,
-                    title : doc.titulo,
-                    image : "",
-                    accessoryType : Ti.UI.LIST_ACCESSORY_TYPE_DISCLOSURE,
-                    color : 'white',
-                    backgroundColor : 'grey',
-                    selectedBackgroundColor : '#3D5B99'
-                }
-            }]);
+            this.addItem(doc);
         }
     },
     "deleteAll" : function () {
-    	this.section.setItems([]);
-    }
+    	this.fg.clearGrid();
+    },
+    'addItem' : function (doc) {
+    	this.anuncios.push(doc._id);
+    	
+    	var values = {
+	    	id: doc._id,
+	        titulo: doc.titulo,
+	        contenido: doc.contenido
+	    };
+	    
+		//CREATES A VIEW WITH OUR CUSTOM LAYOUT
+	    var view = Alloy.createController('item_gallery', values).getView();
+
+	    this.fg.addGridItem({
+	        view: view,
+	        data: values
+	    });
+	},
+	'remoteItem' : function (doc) {
+    	pos = this.anuncios.indexOf(doc._id);
+        this.fg.removeAt(pos);
+        this.anuncios.splice(pos, 1);
+	}
 }; 
