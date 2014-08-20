@@ -1,0 +1,8 @@
+"#itemContainer" : {
+	backgroundImage: "/images/paper.png",
+	backgroundColor: "transparent",
+	font :{
+		fontSize: "20",
+   		fontFamily: "Arial"
+	}
+}

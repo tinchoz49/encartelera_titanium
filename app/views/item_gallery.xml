@@ -1,7 +1,9 @@
-<Alloy>
+<Alloy >
 	<View id="mainView">
-		<View id="itemContainer">
-			<Label id="titulo" color="#900" shadowColor="#aaa" text="" textAlign="Ti.UI.TEXT_ALIGNMENT_CENTER" />
-		</View>	
+		<View id="itemContainer" >
+			<Label id="titulo" color="#000" shadowColor="#aaa" text="" textAlign="Ti.UI.TEXT_ALIGNMENT_CENTER" />
+		</View>			
+
 	</View>	
+	
 </Alloy>

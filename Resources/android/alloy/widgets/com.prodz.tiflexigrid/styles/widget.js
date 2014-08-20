@@ -9,7 +9,7 @@ module.exports = [ {
     priority: 100000.0002,
     key: "fgMain",
     style: {
-        backgroundColor: "#fff",
+        backgroundColor: "transparent",
         height: Ti.UI.FILL,
         width: Ti.UI.FILL
     }

@@ -1,5 +1,15 @@
 var args = arguments[0] || {};
-Ti.API.info(args.titulo);
-Ti.API.info(args.contenido);
-$.titulo.setText(args.titulo);
-$.contenido.setHtml(args.contenido);
+$.docId = args.data.id;
+$.titulo.setText(args.data.titulo);
+$.contenido.setHtml(args.data.contenido);
+
+Ti.App.addEventListener("app:updateDoc", function(e) {
+	if ($.docId == e.id) {
+		$.titulo.setText(e.titulo);
+		$.contenido.setHtml(e.contenido);
+	}
+});
+
+function unsubscribe(e){
+    args.ddp.unsubscribe('cartelerasByIdWithAnuncios');
+};

@@ -1,17 +1,25 @@
 var fg = Alloy.createWidget("com.prodz.tiflexigrid"), itemView;
 
 module.exports = {
-    init: function(options) {
+    init: function(ddp, options) {
+        this.ddp = ddp;
         fg.init(options);
     },
     anuncios: [],
     fg: fg,
     update: function(doc, message) {
-        if ("removed" === message) this.remoteItem(doc); else if ("changed" === message) {
-            itemView = this.fg.getItemAt(this.anuncios.indexOf(doc._id));
-            itemView.titulo.setText(doc.titulo);
-            itemView.contenido.setHtml(doc.contenido);
-        } else this.addItem(doc);
+        if ("removed" === message) this.remoteItem(doc); else if ("changed" === message) Ti.App.fireEvent("app:updateDoc", {
+            id: doc._id,
+            titulo: doc.titulo,
+            contenido: doc.contenido
+        }); else {
+            this.addItem(doc);
+            Ti.App.fireEvent("app:notify", {
+                id: doc._id,
+                titulo: doc.titulo,
+                contenido: doc.contenido
+            });
+        }
     },
     deleteAll: function() {
         this.fg.clearGrid();
@@ -23,7 +31,10 @@ module.exports = {
             titulo: doc.titulo,
             contenido: doc.contenido
         };
-        var view = Alloy.createController("item_gallery", values).getView();
+        var view = Alloy.createController("item_gallery", {
+            ddp: this.ddp,
+            data: values
+        }).getView();
         this.fg.addGridItem({
             view: view,
             data: values

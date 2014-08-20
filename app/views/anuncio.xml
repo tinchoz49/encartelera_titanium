@@ -1,8 +1,10 @@
 <Alloy>
-	<Window width="80%" height="80%" fullscreen="false" navBarHidden="true">
-		<View opacity="1" backgroundColor="white" layout="vertical">
-			<Label id="titulo" color="#900" shadowColor="#aaa" text="A simple label" textAlign="Ti.UI.TEXT_ALIGNMENT_CENTER" width="Ti.UI.SIZE" height="Ti.UI.SIZE" />
-			<Label id="contenido" color="#900" shadowColor="#aaa" text="A simple label" textAlign="Ti.UI.TEXT_ALIGNMENT_CENTER" width="Ti.UI.SIZE" height="Ti.UI.SIZE" />
+	<Window width="90%" height="90%" fullscreen="false" navBarHidden="true" class="containerAnuncio">
+		<View id="anuncioContent">
+			<Label id="titulo">The title</Label>
+			<ScrollView id="scrollView" showVerticalScrollIndicator="true" showHorizontalScrollIndicator="true">
+            	<Label id="contenido">The content</Label>
+        	</ScrollView>
 		</View>
 	</Window>
 </Alloy>

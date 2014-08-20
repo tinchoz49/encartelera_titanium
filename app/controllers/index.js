@@ -3,11 +3,20 @@ MeteorDdp = require("meteor-ddp"),
 Anuncios = require('models/anuncios'), 
 qr = undefined, 
 ddp = undefined, 
-anuncioView = undefined;
+anuncioView = undefined,
+suscribe = false;
 
 $.index.addEventListener('open', function() {
 	$.index.activity.actionBar.hide();
 });
+
+var boton_desuscribir = Ti.UI.createButton({
+		visible: false,
+		bottom: 0,
+		width: '70%',
+		title: 'Desuscribirse'
+});
+
 
 qr = new Chipiqr($.camaraContent, {
 	backgroundColor : 'black',
@@ -17,10 +26,21 @@ qr = new Chipiqr($.camaraContent, {
 	left : 0
 });
 
-qr.onSuccess(function(data, opaco) {
+qr.onSuccess(function(data, opaco, boton) {
 	if (data != undefined && data.data != undefined) {
 		Titanium.Media.vibrate();
 		opaco.opacity = 0;
+	    suscribe = false;
+		boton_desuscribir.visible = true;
+		boton_desuscribir.addEventListener('click', function(e){
+		    ddp.unsubscribe('cartelerasByIdWithAnuncios');
+		    boton_desuscribir.visible = false;
+		    opaco.opacity = 0;
+		});
+		var intent = Titanium.Android.createServiceIntent({
+		  url: 'notifications.js'
+		});
+		Titanium.Android.stopService(intent);
 		try {
 			ddp.unsubscribe('cartelerasByIdWithAnuncios');
 			ddp.subscribe('cartelerasByIdWithAnuncios', [data.data, null, 10]).done(function(err) {
@@ -30,6 +50,7 @@ qr.onSuccess(function(data, opaco) {
 				Anuncios.deleteAll();
 
 				opaco.opacity = 0.7;
+				suscribe = true;
 			});
 		} catch (e) {
 			alert("Error de conexion, al parecer te quedaste sin internet :(");
@@ -58,18 +79,18 @@ ddp.connect().done(function() {
 	Ti.API.info('Connected!');
 });
 
-Anuncios.init({
+Anuncios.init(ddp, {
 	columns : 2,
 	space : 20,
 	gridBackgroundColor : 'transparent',
 	itemHeightDelta : 0,
-	itemBackgroundColor : '#eee',
+	itemBackgroundColor : 'transparent',
 	itemBorderColor : 'transparent',
 	itemBorderWidth : 0,
 	itemBorderRadius : 0,
 	onItemClick : function(item, e) {
 		Ti.API.info(item.data.titulo);
-		anuncioView = Alloy.createController('anuncio', item.data).getView();
+		anuncioView = Alloy.createController('anuncio', {"ddp": ddp, "data": item.data}).getView();
 
 		anuncioView.open({
 			modal : true,
@@ -80,6 +101,8 @@ Anuncios.init({
 });
 
 $.camaraContent.add(Anuncios.fg.getView());
+$.camaraContent.add(boton_desuscribir);
+
 
 ddp.watch('anuncios', function(changedDoc, message) {
 	Ti.API.info('El mensaje: ' + message);
@@ -89,6 +112,7 @@ ddp.watch('anuncios', function(changedDoc, message) {
 	Anuncios.update(changedDoc, message);
 });
 
+
 $.index.open();
 
 /*
@@ -97,14 +121,26 @@ $.index.open();
 
 Ti.App.addEventListener('resumed', function() {
 	Ti.API.info('resumen de la aplicacion');
+	var intent = Titanium.Android.createServiceIntent({
+	  url: 'notifications.js'
+	});
+	Titanium.Android.stopService(intent);
 	qr.start();
 	$.camaraContent.add(Anuncios.fg.getView());
+	$.camaraContent.add(boton_desuscribir);	
 });
 
 Ti.App.addEventListener('paused', function() {
 	Ti.API.info('aplicacion pausada');
+	if (suscribe) {
+		var intent = Titanium.Android.createServiceIntent({
+		  url: 'notifications.js'
+		});
+		Titanium.Android.startService(intent);
+	}
 	qr.stop();
 	$.camaraContent.remove(Anuncios.fg.getView());
+	$.camaraContent.remove(boton_desuscribir);
 });
 
 var platformTools = require('bencoding.android.tools').createPlatform(), wasInForeGround = true, start = false;

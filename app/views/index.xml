@@ -2,6 +2,7 @@
 	<Window title="Encartelera" class="container">
 		<View id="camaraContent">
 			
-		</View>
+		</View>	
+		
 	</Window>
 </Alloy>

@@ -1,0 +1,46 @@
+".containerAnuncio" : {
+	layout : "vertical"
+}
+"#anuncioContent" : {
+	layout:"vertical",
+	borderRadius: "10",
+	opacity: "1",
+	backgroundColor: 'transparent',
+	backgroundImage: '/images/clipboard.png'
+}
+"#titulo" : {
+	font :{
+		fontSize: "22",
+   		fontFamily: "Times New Roman",
+   		fontWeight:"900",
+   		//fontStyle:"Italic"
+	},
+	shadowOffset: "{x:5, y:5}",
+	shadowRadius: "3",
+	shadowColor: "#848484",
+	color: "#222222",
+	width: "80%",
+	height: "10%",
+	//backgroundColor: "red",
+	top: "15%",
+	left: "15%"
+}
+"#contenido" : {
+	font :{
+		fontSize: "18",
+   		fontFamily: "Arial"
+	},
+	borderRadius: "5",
+	shadowRadius: "3",
+	color: "#222222",
+	shadowColor: "#aaa",
+	width: "100%",
+	height: "auto",
+	top: 0,
+	//backgroundColor: "green"
+}
+"#scrollView" : {
+	width: "80%",
+	height: "68%",
+	left: "15%"
+}
