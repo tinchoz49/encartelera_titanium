@@ -33,11 +33,6 @@ module.exports = {
 		    });
         } else {
             this.addItem(doc);
-            Ti.App.fireEvent('app:notify', {
-               id: doc._id,
-		       titulo : doc.titulo, 
-		       contenido : doc.contenido
-		    });
         }
     },
     "deleteAll" : function () {

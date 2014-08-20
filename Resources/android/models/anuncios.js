@@ -8,18 +8,11 @@ module.exports = {
     anuncios: [],
     fg: fg,
     update: function(doc, message) {
-        if ("removed" === message) this.remoteItem(doc); else if ("changed" === message) Ti.App.fireEvent("app:updateDoc", {
+        "removed" === message ? this.remoteItem(doc) : "changed" === message ? Ti.App.fireEvent("app:updateDoc", {
             id: doc._id,
             titulo: doc.titulo,
             contenido: doc.contenido
-        }); else {
-            this.addItem(doc);
-            Ti.App.fireEvent("app:notify", {
-                id: doc._id,
-                titulo: doc.titulo,
-                contenido: doc.contenido
-            });
-        }
+        }) : this.addItem(doc);
     },
     deleteAll: function() {
         this.fg.clearGrid();

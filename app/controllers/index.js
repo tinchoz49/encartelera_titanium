@@ -3,8 +3,7 @@ MeteorDdp = require("meteor-ddp"),
 Anuncios = require('models/anuncios'), 
 qr = undefined, 
 ddp = undefined, 
-anuncioView = undefined,
-suscribe = false;
+anuncioView = undefined;
 
 $.index.addEventListener('open', function() {
 	$.index.activity.actionBar.hide();
@@ -30,17 +29,13 @@ qr.onSuccess(function(data, opaco, boton) {
 	if (data != undefined && data.data != undefined) {
 		Titanium.Media.vibrate();
 		opaco.opacity = 0;
-	    suscribe = false;
 		boton_desuscribir.visible = true;
 		boton_desuscribir.addEventListener('click', function(e){
 		    ddp.unsubscribe('cartelerasByIdWithAnuncios');
 		    boton_desuscribir.visible = false;
 		    opaco.opacity = 0;
 		});
-		var intent = Titanium.Android.createServiceIntent({
-		  url: 'notifications.js'
-		});
-		Titanium.Android.stopService(intent);
+
 		try {
 			ddp.unsubscribe('cartelerasByIdWithAnuncios');
 			ddp.subscribe('cartelerasByIdWithAnuncios', [data.data, null, 10]).done(function(err) {
@@ -50,7 +45,6 @@ qr.onSuccess(function(data, opaco, boton) {
 				Anuncios.deleteAll();
 
 				opaco.opacity = 0.7;
-				suscribe = true;
 			});
 		} catch (e) {
 			alert("Error de conexion, al parecer te quedaste sin internet :(");
@@ -121,10 +115,6 @@ $.index.open();
 
 Ti.App.addEventListener('resumed', function() {
 	Ti.API.info('resumen de la aplicacion');
-	var intent = Titanium.Android.createServiceIntent({
-	  url: 'notifications.js'
-	});
-	Titanium.Android.stopService(intent);
 	qr.start();
 	$.camaraContent.add(Anuncios.fg.getView());
 	$.camaraContent.add(boton_desuscribir);	
@@ -132,12 +122,6 @@ Ti.App.addEventListener('resumed', function() {
 
 Ti.App.addEventListener('paused', function() {
 	Ti.API.info('aplicacion pausada');
-	if (suscribe) {
-		var intent = Titanium.Android.createServiceIntent({
-		  url: 'notifications.js'
-		});
-		Titanium.Android.startService(intent);
-	}
 	qr.stop();
 	$.camaraContent.remove(Anuncios.fg.getView());
 	$.camaraContent.remove(boton_desuscribir);

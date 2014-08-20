@@ -33,7 +33,7 @@ function Controller() {
     $.__views.index.add($.__views.camaraContent);
     exports.destroy = function() {};
     _.extend($, $.__views);
-    var Chipiqr = require("chipiqr"), MeteorDdp = require("meteor-ddp"), Anuncios = require("models/anuncios"), qr = void 0, ddp = void 0, anuncioView = void 0, suscribe = false;
+    var Chipiqr = require("chipiqr"), MeteorDdp = require("meteor-ddp"), Anuncios = require("models/anuncios"), qr = void 0, ddp = void 0, anuncioView = void 0;
     $.index.addEventListener("open", function() {
         $.index.activity.actionBar.hide();
     });
@@ -54,24 +54,18 @@ function Controller() {
         if (void 0 != data && void 0 != data.data) {
             Titanium.Media.vibrate();
             opaco.opacity = 0;
-            suscribe = false;
             boton_desuscribir.visible = true;
             boton_desuscribir.addEventListener("click", function() {
                 ddp.unsubscribe("cartelerasByIdWithAnuncios");
                 boton_desuscribir.visible = false;
                 opaco.opacity = 0;
             });
-            var intent = Titanium.Android.createServiceIntent({
-                url: "notifications.js"
-            });
-            Titanium.Android.stopService(intent);
             try {
                 ddp.unsubscribe("cartelerasByIdWithAnuncios");
                 ddp.subscribe("cartelerasByIdWithAnuncios", [ data.data, null, 10 ]).done(function() {
                     anuncioView && anuncioView.close();
                     Anuncios.deleteAll();
                     opaco.opacity = .7;
-                    suscribe = true;
                 });
             } catch (e) {
                 alert("Error de conexion, al parecer te quedaste sin internet :(");
@@ -120,22 +114,12 @@ function Controller() {
     $.index.open();
     Ti.App.addEventListener("resumed", function() {
         Ti.API.info("resumen de la aplicacion");
-        var intent = Titanium.Android.createServiceIntent({
-            url: "notifications.js"
-        });
-        Titanium.Android.stopService(intent);
         qr.start();
         $.camaraContent.add(Anuncios.fg.getView());
         $.camaraContent.add(boton_desuscribir);
     });
     Ti.App.addEventListener("paused", function() {
         Ti.API.info("aplicacion pausada");
-        if (suscribe) {
-            var intent = Titanium.Android.createServiceIntent({
-                url: "notifications.js"
-            });
-            Titanium.Android.startService(intent);
-        }
         qr.stop();
         $.camaraContent.remove(Anuncios.fg.getView());
         $.camaraContent.remove(boton_desuscribir);
